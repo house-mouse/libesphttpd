@@ -1,0 +1,9 @@
+menu "HTTP Server"
+
+config HTTPD_MAX_CONNECTIONS
+    int "Max HTTP Requests"
+    default 4
+    help
+        This sets the maximum number of httpd requests
+
+endmenu

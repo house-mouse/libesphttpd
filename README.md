@@ -1,3 +1,33 @@
+2020/03/09
+
+Why does this exist?
+
+This branch/repository was forked from https://github.com/Spritetm/libesphttpd
+
+That repository has the following note:
+NOTE: THIS CODE IS UNMAINTAINED. Please take a look at https://github.com/chmorgan/libesphttpd instead.
+
+The code now at https://github.com/chmorgan/libesphttpd has 2 major unfortunate properties.
+
+The first is that it has changed the licensing terms from the original "BEER-WARE LICENSE" to
+the Mozilla Public License
+
+The second is that changes there have been pretty heavily biased towards ESP32, pretty fully
+breaking any ESP8266 support.
+
+While the new license could be tollerable, I hitched my wagon to libesphttpd long ago, and don't
+particularly like having the license changed on me.
+
+The lack of ESP8266 support is more serious, since I'm hoping to continue libesphttpd in projects
+that happen to have ESP8266 chips in them, and would like to update to patched versions of the
+wifi stack and other improvements that only seem possible through the espressif tool stack.
+
+So, this is my attempt to get libesphttpd working with ESP8266_RTOS_SDK for my own purposes.
+Perhaps it will be useful to you as well.  If you are using ESP32, you should quite possibly
+consider using  https://github.com/chmorgan/libesphttpd instead.
+
+---
+
 # Libesphttpd intro
 
 Libesphttpd is a HTTP server library for the ESP8266. It supports integration in projects

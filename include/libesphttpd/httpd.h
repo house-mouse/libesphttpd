@@ -26,6 +26,8 @@
 #define HTTPD_TRANSFER_CHUNKED 1
 #define HTTPD_TRANSFER_NONE 2
 
+#include "libesphttpd/platform.h"
+
 typedef struct HttpdPriv HttpdPriv;
 typedef struct HttpdConnData HttpdConnData;
 typedef struct HttpdPostData HttpdPostData;
@@ -48,8 +50,8 @@ struct HttpdConnData {
 	cgiRecvHandler recvHdl;	// Handler for data received after headers, if any
 	HttpdPostData *post;	// POST data structure
 	int remote_port;		// Remote TCP port
-	uint8 remote_ip[4];		// IP address of client
-	uint8 slot;				// Slot ID
+	uint8_t remote_ip[4];		// IP address of client
+	uint8_t slot;				// Slot ID
 };
 
 //A struct describing the POST data sent inside the http connection.  This is used by the CGI functions

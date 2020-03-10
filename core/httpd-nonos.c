@@ -2,13 +2,13 @@
 ESP8266 web server - platform-dependent routines, nonos version
 */
 
-#include <esp8266.h>
-#include "httpd.h"
-#include "platform.h"
+#include <esp8266/esp8266.h>
+#include "libesphttpd/httpd.h"
+#include "libesphttpd/platform.h"
 #include "httpd-platform.h"
 
 #ifndef FREERTOS
-
+#if 0 // esp_tcp doesn't seem to exist anymore?
 //Listening connection data
 static struct espconn httpdConn;
 static esp_tcp httpdTcp;
@@ -85,4 +85,5 @@ void ICACHE_FLASH_ATTR httpdPlatInit(int port, int maxConnCt) {
 }
 
 
+#endif // 0 esp_tcp doesn't seem to exist anymore?
 #endif

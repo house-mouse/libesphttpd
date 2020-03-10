@@ -1,20 +1,31 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+// TODO: Figure out where to get these values for real, or how to 
+// get them into/out of Kconfig
+
+#undef ESP32
+#define FREERTOS
+
+
+#include "os.h"
+
 #ifdef FREERTOS
 //#include "esp_timer.h"
 typedef struct RtosConnType RtosConnType;
 typedef RtosConnType* ConnTypePtr;
-#if 0
-//Unfortunately, this does not always work... the latest esp32 sdk, for example, breaks this.
+
+#define ICACHE_FLASH_ATTR
+
+#if ESP32
+#define httpd_printf(fmt, ...) os_printf(fmt, ##__VA_ARGS__)
+#else // ESP32
 #define httpd_printf(fmt, ...) do {	\
-	static const char flash_str[] ICACHE_RODATA_ATTR STORE_ATTR = fmt;	\
+	static const char flash_str[] ICACHE_RODATA_ATTR = fmt;	\
 	printf(flash_str, ##__VA_ARGS__);	\
 	} while(0)
-#else
-#define httpd_printf(fmt, ...) os_printf(fmt, ##__VA_ARGS__)
-#endif
-#else
+#endif // ESP32
+#else // not FREERTOS
 #define printf(...) os_printf(__VA_ARGS__)
 #define sprintf(str, ...) os_sprintf(str, __VA_ARGS__)
 #define strcpy(a, b) os_strcpy(a, b)
@@ -31,8 +42,7 @@ typedef RtosConnType* ConnTypePtr;
 #define memcmp(a, b, c) os_memcmp(a, b, c)
 typedef struct espconn* ConnTypePtr;
 #define httpd_printf(format, ...) os_printf(format, ##__VA_ARGS__)
-#endif
+#endif // FREERTOS
 
 
-
-#endif
+#endif // PLATFORM_H

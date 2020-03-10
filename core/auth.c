@@ -12,8 +12,8 @@ HTTP auth implementation. Only does basic authentication for now.
  */
 
 
-#include <esp8266.h>
-#include "auth.h"
+#include "esp8266/esp8266.h"
+#include "libesphttpd/auth.h"
 #include "base64.h"
 
 int ICACHE_FLASH_ATTR authBasic(HttpdConnData *connData) {

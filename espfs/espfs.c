@@ -18,6 +18,8 @@ It's written for use with httpd, but doesn't need to be used as such.
 //simplifies debugging, but needs some slightly different headers. The #ifdef takes
 //care of that.
 
+#define httpd_printf printf // TODO: fix this
+
 #ifdef __ets__
 //esp build
 #include <esp8266.h>
@@ -30,8 +32,9 @@ It's written for use with httpd, but doesn't need to be used as such.
 #define ICACHE_FLASH_ATTR
 #endif
 
-#include "espfsformat.h"
-#include "espfs.h"
+#include "espfs/espfsformat.h"
+#include "libesphttpd/espfs.h"
+#include "spi_flash.h"
 
 #ifdef ESPFS_HEATSHRINK
 #include "heatshrink_config_custom.h"
@@ -86,7 +89,7 @@ EspFsInitResult ICACHE_FLASH_ATTR espFsInit(void *flashAddress) {
 
 	// check if there is valid header at address
 	EspFsHeader testHeader;
-	spi_flash_read((uint32)flashAddress, (uint32*)&testHeader, sizeof(EspFsHeader));
+	spi_flash_read((uint32_t)flashAddress, (uint32_t*)&testHeader, sizeof(EspFsHeader));
 	if (testHeader.magic != ESPFS_MAGIC) {
 		return ESPFS_INIT_RESULT_NO_IMAGE;
 	}
@@ -141,7 +144,7 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 	while(1) {
 		hpos=p;
 		//Grab the next file header.
-		spi_flash_read((uint32)p, (uint32*)&h, sizeof(EspFsHeader));
+		spi_flash_read((uint32_t)p, (uint32_t*)&h, sizeof(EspFsHeader));
 
 		if (h.magic!=ESPFS_MAGIC) {
 			httpd_printf("Magic mismatch. EspFS image broken.\n");
@@ -153,7 +156,7 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 		}
 		//Grab the name of the file.
 		p+=sizeof(EspFsHeader); 
-		spi_flash_read((uint32)p, (uint32*)&namebuf, sizeof(namebuf));
+		spi_flash_read((uint32_t)p, (uint32_t*)&namebuf, sizeof(namebuf));
 //		httpd_printf("Found file '%s'. Namelen=%x fileLenComp=%x, compr=%d flags=%d\n", 
 //				namebuf, (unsigned int)h.nameLen, (unsigned int)h.fileLenComp, h.compression, h.flags);
 		if (strcmp(namebuf, fileName)==0) {

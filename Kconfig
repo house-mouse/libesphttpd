@@ -1,9 +1,15 @@
-menu "HTTP Server"
+menu "HTTP Server (LIBESPHTTPD)"
 
 config HTTPD_MAX_CONNECTIONS
     int "Max HTTP Requests"
     default 4
     help
         This sets the maximum number of httpd requests
+
+config HTTPD_STACKSIZE
+    int "HTTPD Stack Size"
+    default 2048
+    help
+        This sets the size in bytes of the stack for the HTTPD task
 
 endmenu

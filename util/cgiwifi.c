@@ -12,8 +12,8 @@ Cgi/template routines for the /wifi url.
  */
 
 
-#include <esp8266.h>
-#include "cgiwifi.h"
+#include "esp8266/esp8266.h"
+#include "libesphttpd/cgiwifi.h"
 
 //Enable this to disallow any changes in AP settings
 //#define DEMO_MODE
@@ -48,6 +48,7 @@ static os_timer_t resetTimer;
 //Callback the code calls when a wlan ap scan is done. Basically stores the result in
 //the cgiWifiAps struct.
 void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status) {
+#ifdef TODOFIXME
 	int n;
 	struct bss_info *bss_link = (struct bss_info *)arg;
 	httpd_printf("wifiScanDoneCb %d\n", status);
@@ -105,15 +106,18 @@ void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status) {
 	}
 	//We're done.
 	cgiWifiAps.scanInProgress=0;
+#endif //TODOFIXME
 }
 
 
 //Routine to start a WiFi access point scan.
 static void ICACHE_FLASH_ATTR wifiStartScan() {
+#ifdef TODOFIXME
 //	int x;
 	if (cgiWifiAps.scanInProgress) return;
 	cgiWifiAps.scanInProgress=1;
 	wifi_station_scan(NULL, wifiScanDoneCb);
+#endif //TODOFIXME
 }
 
 //This CGI is called from the bit of AJAX-code in wifi.tpl. It will initiate a
@@ -170,6 +174,7 @@ static struct station_config stconf;
 //This routine is ran some time after a connection attempt to an access point. If
 //the connect succeeds, this gets the module in STA-only mode.
 static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
+#ifdef TODOFIXME
 	int x=wifi_station_get_connect_status();
 	if (x==STATION_GOT_IP) {
 		//Go to STA mode. This needs a reset, so do that.
@@ -181,6 +186,7 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 		httpd_printf("Connect fail. Not going into STA-only mode.\n");
 		//Maybe also pass this through on the webpage?
 	}
+#endif // TODOFIXME
 }
 
 
@@ -191,6 +197,7 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 static void ICACHE_FLASH_ATTR reassTimerCb(void *arg) {
 	int x;
 	httpd_printf("Try to connect to AP....\n");
+#ifdef TODOFIXME
 	wifi_station_disconnect();
 	wifi_station_set_config(&stconf);
 	wifi_station_connect();
@@ -202,12 +209,14 @@ static void ICACHE_FLASH_ATTR reassTimerCb(void *arg) {
 		os_timer_setfn(&resetTimer, resetTimerCb, NULL);
 		os_timer_arm(&resetTimer, 15000, 0); //time out after 15 secs of trying to connect
 	}
+#endif //TODOFIXME
 }
 
 
 //This cgi uses the routines above to connect to a specific access point with the
 //given ESSID using the given password.
 int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
+#ifdef TODOFIXME
 	char essid[128];
 	char passwd[128];
 	static os_timer_t reassTimer;
@@ -234,6 +243,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
 	os_timer_arm(&reassTimer, 500, 0);
 	httpdRedirect(connData, "connecting.html");
 #endif
+#endif //TODOFIXME
 	return HTTPD_CGI_DONE;
 }
 
@@ -251,10 +261,12 @@ int ICACHE_FLASH_ATTR cgiWiFiSetMode(HttpdConnData *connData) {
 	len=httpdFindArg(connData->getArgs, "mode", buff, sizeof(buff));
 	if (len!=0) {
 		httpd_printf("cgiWifiSetMode: %s\n", buff);
+#ifdef TODOFIXME
 #ifndef DEMO_MODE
 		wifi_set_opmode(atoi(buff));
 		system_restart();
 #endif
+#endif //TODOFIXME
 	}
 	httpdRedirect(connData, "/wifi");
 	return HTTPD_CGI_DONE;
@@ -263,11 +275,13 @@ int ICACHE_FLASH_ATTR cgiWiFiSetMode(HttpdConnData *connData) {
 int ICACHE_FLASH_ATTR cgiWiFiConnStatus(HttpdConnData *connData) {
 	char buff[1024];
 	int len;
+#ifdef TODOFIXME
 	struct ip_info info;
 	int st=wifi_station_get_connect_status();
 	httpdStartResponse(connData, 200);
 	httpdHeader(connData, "Content-Type", "text/json");
 	httpdEndHeaders(connData);
+
 	if (connTryStatus==CONNTRY_IDLE) {
 		len=sprintf(buff, "{\n \"status\": \"idle\"\n }\n");
 	} else if (connTryStatus==CONNTRY_WORKING || connTryStatus==CONNTRY_SUCCESS) {
@@ -288,6 +302,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnStatus(HttpdConnData *connData) {
 	}
 
 	httpdSend(connData, buff, len);
+#endif //TODOFIXME
 	return HTTPD_CGI_DONE;
 }
 
@@ -295,6 +310,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnStatus(HttpdConnData *connData) {
 int ICACHE_FLASH_ATTR tplWlan(HttpdConnData *connData, char *token, void **arg) {
 	char buff[1024];
 	int x;
+#ifdef TODOFIXME
 	static struct station_config stconf;
 	if (token==NULL) return HTTPD_CGI_DONE;
 	wifi_station_get_config(&stconf);
@@ -318,6 +334,7 @@ int ICACHE_FLASH_ATTR tplWlan(HttpdConnData *connData, char *token, void **arg) 
 		}
 	}
 	httpdSend(connData, buff, -1);
+#endif //TODOFIXME
 	return HTTPD_CGI_DONE;
 }
 

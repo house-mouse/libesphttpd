@@ -5,7 +5,7 @@ ESP8266 web server - platform-dependent routines, nonos version
 #include <esp8266/esp8266.h>
 #include "libesphttpd/httpd.h"
 #include "libesphttpd/platform.h"
-#include "httpd-platform.h"
+#include "core/httpd-platform.h"
 
 #ifndef FREERTOS
 #if 0 // esp_tcp doesn't seem to exist anymore?

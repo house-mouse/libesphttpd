@@ -4,20 +4,23 @@ ESP8266 web server - platform-dependent routines, FreeRTOS version
 
 Thanks to my collague at Espressif for writing the foundations of this code.
 */
+#define FREERTOS // TODO: figure out how to get this correctly...
+#define HTTPD_MAX_CONNECTIONS CONFIG_HTTPD_MAX_CONNECTIONS
+
 #ifdef FREERTOS
 
 
-#include <esp8266.h>
-#include "httpd.h"
-#include "platform.h"
-#include "httpd-platform.h"
+#include "esp8266/esp8266.h"
+#include "libesphttpd/httpd.h"
+#include "libesphttpd/platform.h"
+#include "core/httpd-platform.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 
-#include "lwip/lwip/sockets.h"
+#include "lwip/sockets.h"
 
 
 static int httpPort;
@@ -61,10 +64,10 @@ void ICACHE_FLASH_ATTR httpdPlatUnlock() {
 
 #define RECV_BUF_SIZE 2048
 static void platHttpServerTask(void *pvParameters) {
-	int32 listenfd;
-	int32 remotefd;
-	int32 len;
-	int32 ret;
+	int32_t listenfd;
+	int32_t remotefd;
+	int32_t len;
+	int32_t ret;
 	int x;
 	int maxfdp = 0;
 	char *precvbuf;
@@ -255,11 +258,7 @@ static void platHttpServerTask(void *pvParameters) {
 void ICACHE_FLASH_ATTR httpdPlatInit(int port, int maxConnCt) {
 	httpPort=port;
 	httpMaxConnCt=maxConnCt;
-#ifdef ESP32
-	xTaskCreate(platHttpServerTask, (const char *)"esphttpd", HTTPD_STACKSIZE, NULL, 4, NULL);
-#else
-	xTaskCreate(platHttpServerTask, (const signed char *)"esphttpd", HTTPD_STACKSIZE, NULL, 4, NULL);
-#endif
+	xTaskCreate(platHttpServerTask, (const char *)"esphttpd", CONFIG_HTTPD_STACKSIZE, NULL, 4, NULL);
 }
 
 

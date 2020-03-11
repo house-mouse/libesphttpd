@@ -14,19 +14,16 @@ Some flash handling cgi routines. Used for updating the ESPFS/OTA image.
 //This doesn't work yet on the ESP32. ToDo: figure out how to make it work.
 #ifndef ESP32
 
-#include <esp8266.h>
-#include "cgiflash.h"
-#include "espfs.h"
-#include "cgiflash.h"
-#include "espfs.h"
-
+#include "esp8266/esp8266.h"
+#include "libesphttpd/cgiflash.h"
+#include "libesphttpd/espfs.h"
 //#include <osapi.h>
-#include "cgiflash.h"
-#include "espfs.h"
 
 #ifndef UPGRADE_FLAG_FINISH
 #define UPGRADE_FLAG_FINISH     0x02
 #endif
+
+#include "tcpip_adapter.h"
 
 // Check that the header of the firmware blob looks like actual firmware...
 static int ICACHE_FLASH_ATTR checkBinHeader(void *buf) {
@@ -50,7 +47,8 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
 		//Connection aborted. Clean up.
 		return HTTPD_CGI_DONE;
 	}
-	uint8 id = system_upgrade_userbin_check();
+#ifdef FIXEDUPLOAD
+	uint8_t id = system_upgrade_userbin_check();
 	httpdStartResponse(connData, 200);
 	httpdHeader(connData, "Content-Type", "text/plain");
 	httpdHeader(connData, "Content-Length", "9");
@@ -58,6 +56,7 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
 	char *next = id == 1 ? "user1.bin" : "user2.bin";
 	httpdSend(connData, next, -1);
 	httpd_printf("Next firmware: %s (got %d)\n", next, id);
+#endif // FIXEDUPLOAD
 	return HTTPD_CGI_DONE;
 }
 
@@ -102,6 +101,7 @@ typedef struct __attribute__((packed)) {
 
 
 int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
+#ifdef FIXEDUPLOAD // TODO this is utterly completely no longer working
 	CgiUploadFlashDef *def=(CgiUploadFlashDef*)connData->cgiArg;
 	UploadState *state=(UploadState *)connData->cgiData;
 	int len;
@@ -232,7 +232,7 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
 				}
 				//Write page
 				//httpd_printf("Writing %d bytes of data to SPI pos 0x%x...\n", state->pagePos, state->address);
-				spi_flash_write(state->address, (uint32 *)state->pageData, state->pagePos);
+				spi_flash_write(state->address, (uint32_t *)state->pageData, state->pagePos);
 				state->address+=PAGELEN;
 				state->pagePos=0;
 				if (state->len==0) {
@@ -264,6 +264,7 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
 		free(state);
 		return HTTPD_CGI_DONE;
 	}
+#endif // FIXEDUPLOAD
 
 	return HTTPD_CGI_MORE;
 }
@@ -273,8 +274,10 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
 static os_timer_t resetTimer;
 
 static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
+#ifdef FIXEDUPLOAD // TODO this is utterly completely no longer working
 	system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 	system_upgrade_reboot();
+#endif // FIXEDUPLOAD
 }
 
 // Handle request to reboot into the new firmware

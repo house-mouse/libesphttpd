@@ -12,11 +12,11 @@ Websocket support for esphttpd. Inspired by https://github.com/dangrie158/ESP-82
  */
 
 
-#include <esp8266.h>
-#include "httpd.h"
-#include "sha1.h"
-#include "base64.h"
-#include "cgiwebsocket.h"
+#include "esp8266/esp8266.h"
+#include "libesphttpd/httpd.h"
+#include "libesphttpd/sha1.h"
+#include "core/base64.h"
+#include "libesphttpd/cgiwebsocket.h"
 
 #define WS_KEY_IDENTIFIER "Sec-WebSocket-Key: "
 #define WS_GUID "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -78,8 +78,8 @@ struct WebsockFrame {
 struct WebsockPriv {
 	struct WebsockFrame fr;
 	uint8_t maskCtr;
-	uint8 frameCont;
-	uint8 closedHere;
+	uint8_t frameCont;
+	uint8_t closedHere;
 	int wsStatus;
 	Websock *next; //in linked list
 };

@@ -14,7 +14,7 @@ Esp8266 http server - core routines
 
 #include "esp8266/esp8266.h"
 #include "libesphttpd/httpd.h"
-#include "httpd-platform.h"
+#include "core/httpd-platform.h"
 
 #ifndef HTTPD_MAX_CONNECTIONS
 #define HTTPD_MAX_CONNECTIONS CONFIG_HTTPD_MAX_CONNECTIONS

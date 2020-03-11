@@ -15,7 +15,10 @@ be used to send mobile phones, tablets etc which connect to the ESP in AP mode d
 the internal webserver.
 */
 
-#include <esp8266.h>
+#define FREERTOS // TODO: get this from the correct place...
+#define httpd_printf printf
+
+#include "esp8266/esp8266.h"
 #ifdef FREERTOS
 
 #include "FreeRTOS.h"
@@ -26,6 +29,8 @@ the internal webserver.
 #include "lwip/err.h"
 static int sockFd;
 #endif
+
+#include "tcpip_adapter.h"
 
 
 #define DNS_LEN 512
@@ -90,6 +95,7 @@ typedef struct __attribute__ ((packed)) {
 #define QCLASS_ANY 255
 #define QCLASS_URI 256
 
+#define ICACHE_FLASH_ATTR
 
 //Function to put unaligned 16-bit network values
 static void ICACHE_FLASH_ATTR setn16(void *pp, int16_t n) {
@@ -211,8 +217,9 @@ static void ICACHE_FLASH_ATTR captdnsRecv(struct sockaddr_in *premote_addr, char
 			setn32(&rf->ttl, 0);
 			setn16(&rf->rdlength, 4); //IPv4 addr is 4 bytes;
 			//Grab the current IP of the softap interface
-			struct ip_info info;
-			wifi_get_ip_info(SOFTAP_IF, &info);
+
+                        tcpip_adapter_ip_info_t info;
+                        tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &info);
 			*rend++=ip4_addr1(&info.ip);
 			*rend++=ip4_addr2(&info.ip);
 			*rend++=ip4_addr3(&info.ip);
@@ -261,22 +268,20 @@ static void ICACHE_FLASH_ATTR captdnsRecv(struct sockaddr_in *premote_addr, char
 		conn->proto.udp->remote_port=remInfo->remote_port;
 		memcpy(conn->proto.udp->remote_ip, remInfo->remote_ip, sizeof(remInfo->remote_ip));
 	}
-	espconn_sendto(conn, (uint8*)reply, rend-reply);
+	espconn_sendto(conn, (uint8_t*)reply, rend-reply);
 #else
-	sendto(sockFd,(uint8*)reply, rend-reply, 0, (struct sockaddr *)premote_addr, sizeof(struct sockaddr_in));
+	sendto(sockFd,(uint8_t*)reply, rend-reply, 0, (struct sockaddr *)premote_addr, sizeof(struct sockaddr_in));
 #endif
 }
 
 #ifdef FREERTOS
 static void captdnsTask(void *pvParameters) {
 	struct sockaddr_in server_addr;
-	int32 ret;
+	int32_t ret;
 	struct sockaddr_in from;
 	socklen_t fromlen;
-	struct ip_info ipconfig;
 	char udp_msg[DNS_LEN];
 	
-	memset(&ipconfig, 0, sizeof(ipconfig));
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;	   
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -303,7 +308,7 @@ static void captdnsTask(void *pvParameters) {
 	while(1) {
 		memset(&from, 0, sizeof(from));
 		fromlen=sizeof(struct sockaddr_in);
-		ret=recvfrom(sockFd, (u8 *)udp_msg, DNS_LEN, 0,(struct sockaddr *)&from,(socklen_t *)&fromlen);
+		ret=recvfrom(sockFd, (uint8_t *)udp_msg, DNS_LEN, 0,(struct sockaddr *)&from,(socklen_t *)&fromlen);
 		if (ret>0) captdnsRecv(&from,udp_msg,ret);
 	}
 	
@@ -312,11 +317,7 @@ static void captdnsTask(void *pvParameters) {
 }
 
 void captdnsInit(void) {
-#ifdef ESP32
 	xTaskCreate(captdnsTask, (const char *)"captdns_task", 1200, NULL, 3, NULL);
-#else
-	xTaskCreate(captdnsTask, (const signed char *)"captdns_task", 1200, NULL, 3, NULL);
-#endif
 }
 
 #else

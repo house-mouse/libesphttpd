@@ -2,7 +2,7 @@
 /* PUBLIC DOMAIN - Jon Mayo - November 13, 2003 */
 #include "esp8266/esp8266.h"
 #include "libesphttpd/platform.h"
-#include "base64.h"
+#include "core/base64.h"
 #include "ctype.h"
 
 static const int base64dec_tab[256] ICACHE_RODATA_ATTR={
